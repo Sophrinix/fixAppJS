@@ -1,0 +1,23 @@
+{
+  "name": "fixappjs",
+  "version": "0.1.0",
+  "description": "Fixes the App.js not found issue on Titanium/Appcelerator SDK",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sophrinix/fixAppJS.git"
+  },
+  "keywords": [
+    "appcelerator",
+    "titanium"
+  ],
+  "author": "Andrew McElroy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Sophrinix/fixAppJS/issues"
+  },
+  "homepage": "https://github.com/Sophrinix/fixAppJS#readme"
+}
