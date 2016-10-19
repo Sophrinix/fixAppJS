@@ -1,7 +1,7 @@
 var fs = require('fs')
 var path = require('path')
 var spawn = require('child_process').spawn
-var utils = require('../utils')
+var utils = require('../../../../utils')
 
 /* Needed paths for the plugin */
 var paths = {}
@@ -20,43 +20,74 @@ exports.init = function (logger, config, cli) {
     })
 
 
-
+/**
     cli.on('build.pre.compile', executeSeq(logger, [
-        cleanResources,
-        symlinkResources
     ]))
-
+**/
     cli.on('build.post.compile', executeSeq(logger, [
-        cleanResources,
-        copyCompiledResources,
-        cleanProject
+        copyCompiledResources
     ]))
 }
+
 
 function executeSeq(logger, tasks) {
     var current = 0
     var errored = false
-    var fixappjs = null
+    var es6 = null
 
     return function task(data, terminate) {
-        if (fixappjs === null && data.cli) {
-            var propFixAppJS = data.cli.tiapp.properties.fixappjs && data.cli.tiapp.properties.fixappjs.value
-            var optionFixAppJS = data.cli.argv.$_.indexOf('--fixappjs') !== -1
-            fixappjs = propFixAppJS || optionFixAppJS
+        /* No task are done if es6 isn't needed */
+        if (es6 === null && data.cli) {
+            var propES6 = data.cli.tiapp.properties.es6 && data.cli.tiapp.properties.es6.value
+            var optiES6 = data.cli.argv.$_.indexOf('--es6') !== -1
+            es6 = propES6 || optiES6
         }
-        if (!fixappjs) { return terminate() }
+        if (!es6) { return terminate() }
         tasks[current](logger, data, function next(err, type) {
             if (err) {
                 if (errored) { return }
                 errored = true
                 logger[type || 'error'](err)
-                return terminate(type && type !== 'error' ? undefined : "Unable to Fix app.js problem")
+                return terminate(type && type !== 'error' ? undefined : "Unable to fix app.js issue")
             }
             if (++current >= tasks.length) { return terminate() }
             task(data, terminate)
         })
     }
 }
+
+function prepare(logger, data, next) {
+    logger.info("Setup project for ES6 transpiling")
+    paths.fromProject = data.cli.argv['project-dir']
+    paths.toProject = path.join(paths.fromProject, '.project')
+    paths.fromSources = path.join(paths.fromProject, 'app')
+    paths.toSources = path.join(paths.toProject, 'app')
+    paths.fromResources = path.join(paths.fromProject, 'Resources')
+    paths.toResources = path.join(paths.toProject, 'Resources')
+    data.cli.argv.$_.push('--project-dir', paths.toProject)
+    data.cli.argv['project-dir'] = paths.toProject
+    utils.clean(paths.toProject, next)
+}
+
+function copyProject (logger, data, next) {
+    logger.info("Ensuring xcodeproj has linked js assets.")
+    fs.mkdir(paths.toProject, function (e) {
+        if (e) { return next(e) }
+        fs.readdir(paths.fromProject, function (e, files) {
+            var n = files.length
+            if (n === 0) { return next() }
+            var after = function (e) {
+                if (e) { return next(e) }
+                if (--n === 0) { return next() }
+            }
+            files.forEach(function (f) {
+                if (blacklist.indexOf(f) !== -1 || f.match(/^\..*/)) { return after() }
+                utils.cp(path.join(paths.fromProject, f), path.join(paths.toProject, f), after)
+            })
+        })
+    })
+}
+
 
 
 function symlinkResources (logger, data, next) {
