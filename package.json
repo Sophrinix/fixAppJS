@@ -2,9 +2,9 @@
   "name": "fixappjs",
   "version": "0.1.0",
   "description": "Fixes the App.js not found issue on Titanium/Appcelerator SDK",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "node run install",
+    "preuninstall": "node run uninstall"
   },
   "repository": {
     "type": "git",
@@ -19,5 +19,21 @@
   "bugs": {
     "url": "https://github.com/Sophrinix/fixAppJS/issues"
   },
-  "homepage": "https://github.com/Sophrinix/fixAppJS#readme"
+  "homepage": "https://github.com/Sophrinix/fixAppJS#readme",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "node-appc": "^0.2.33",
+    "pkginfo": "^0.3.0",
+    "tiapp": "0.0.2",
+    "underscore": "^1.8.3",
+    "xml2js": "0.4.13",
+    "xcode": "0.8.9",
+    "ioslib": "0.15.4",
+    "moment": "2.14.1",
+    "node-appc": "0.2.39",
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "11.1.0"
+  }
 }

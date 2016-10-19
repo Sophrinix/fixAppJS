@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+var CONF  = require('./package.json')
+var spawn = require('child_process').spawn
+var path  = require('path')
+var version = CONF.version.split('.').slice(0, 2).join('.')
+var plugin = path.join(__dirname, 'plugin', CONF.name, version, 'hooks')
+
+function info (i) { process.stdout.write('\033[1;32m' + i + '\033[0m\n') }
+function run (opt, msg, cmd) {
+    var opts = ['config', 'paths.hooks', opt, plugin]
+    opts = cmd === "appc" ? ['ti'].concat(opts) : opts
+    var installation = spawn(cmd, opts)
+    installation.stderr.pipe(process.stderr)
+    installation.on("exit", function (code) {
+        if (code === 0) {
+            info(CONF.name + ' v' + CONF.version + ' successfully ' + msg + '.')
+        }
+        process.exit(code)
+    })
+    installation.on("error", function (err) {
+        if (err.code === 'ENOENT' && err.syscall === 'spawn ti') {
+            console.log("titanium cli isn't installed. Trying with appc cli...")
+            run(opt, msg, 'appc')
+            return
+        }
+        console.log("Error: ", err)
+        process.exit(1)
+    })
+}
+
+run.apply(null, process.argv[2] === 'install' ? ['-a', 'installed', 'ti'] : ['-r', 'uninstalled', 'ti'])
