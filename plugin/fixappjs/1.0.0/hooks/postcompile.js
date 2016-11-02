@@ -1,41 +1,33 @@
-var fs = require('fs')
-var path = require('path')
-var spawn = require('child_process').spawn
-var utils = require('../../../../utils')
+var xcode = require('xcode'),
+    fs = require('fs'),
+    path = require('path'),
+    spawn = require('child_process').spawn,
+    utils = require('../../../../utils'),
+    //tiapp = require();
 
 /* Needed paths for the plugin */
 var paths = {}
-//var blacklist = ['Resources', 'build', 'README', 'LICENSE', 'node_modules']
-
 exports.cliVersion = ">=3.x"
 exports.version = "1.0"
-exports.init = function (logger, config, cli) {
+exports.init = function(logger, config, cli) {
     /* Handle brutal stops */
-    process.on('SIGINT', function () {
-        //paths.toProject && utils.cleanSync(paths.toProject)
+    process.on('SIGINT', function() {
         process.exit(2)
     })
-    process.on('exit', function () {
-      //  paths.toProject && utils.cleanSync(paths.toProject)
-    })
+    process.on('exit', function() { })
 
     cli.on('build.pre.construct', executeSeq(logger, [
-         prepare
-      ]))
-/**
-    cli.on('build.pre.compile', executeSeq(logger, [
-    ]))
-**/
+            prepare
+        ]))
     cli.on('build.post.compile', executeSeq(logger, [
-      copyCompiledResources
+        copyCompiledResources
     ]))
 }
 
-
 function executeSeq(logger, tasks) {
-    var current = 0
-    var errored = false
-    var fixappjs = null
+    var current = 0,
+        errored = false,
+        fixappjs = null;
 
     return function task(data, terminate) {
         /* No task are done if es6 isn't needed */
@@ -44,42 +36,64 @@ function executeSeq(logger, tasks) {
             var optiFixAppJS = data.cli.argv.$_.indexOf('--fixappjs') !== -1
             fixappjs = propFixAppJS || optiFixAppJS
         }
-        if (!fixappjs) { return terminate() }
+        if (!fixappjs) {
+            return terminate()
+        }
         tasks[current](logger, data, function next(err, type) {
             if (err) {
-                if (errored) { return }
+                if (errored) {
+                    return
+                }
                 errored = true
                 logger[type || 'error'](err)
                 return terminate(type && type !== 'error' ? undefined : "Unable to fix app.js issue")
             }
-            if (++current >= tasks.length) { return terminate() }
+            if (++current >= tasks.length) {
+                return terminate()
+            }
             task(data, terminate)
         })
     }
 }
 
 function prepare(logger, data, next) {
-    logger.info("Setup project fixing app.js")
+    logger.info("preparing to fix the app.js issue")
     utils.clean('', next)
 }
 
-
-
-function symlinkResources (logger, data, next) {
+// I think we can back this code out
+function symlinkResources(logger, data, next) {
     logger.info("Symlinking resources")
-  //  fs.symlink(paths.toResources, paths.fromResources, next)
 }
 
-function cleanProject (logger, data, next) {
-    logger.info("Cleaning fixAppJS tempdata")
-    //utils.clean(paths.toProject, next)
+function cleanProject(logger, data, next) {
+    logger.info("Another function that I think I can give the axe to")
 }
 
-function copyCompiledResources (logger, data, next) {
+function copyCompiledResources(logger, data, next) {
     logger.info("Copying compiled resources")
-    console.log('yippie!')
     utils.clean('', next)
-// now I just need to read the xcodeproj and then add the js files to the resources directory
+    var exec = require('child_process').exec;
+    var path = require('path')
 
-  //  utils.cp(paths.toResources, paths.fromResources, next)
+    var parentDir = path.resolve(process.cwd(), '.');
+    exec('NowWeFixAppJS', { cwd: parentDir }, function(error, stdout, stderr) {
+        console.log("what is up" + parentDir);
+
+        // find tiapp.xml
+        // read name of project
+        // read to see if alloy is used
+        // read for hyperloop
+        // copy relevant resource folders and assets to xcodeproj/pbxproj
+        // profit
+
+        var projectPath = parentDir + '/build/iphone/whyme.xcodeproj/project.pbxproj',
+            myProj = xcode.project(projectPath);
+
+        myProj.parse(function(err) {
+            myProj.addResourceFile(parentDir + '/Resources/app.js');
+            fs.writeFileSync(projectPath, myProj.writeSync());
+            console.log('Congrats, you now have a corrected xcodeproj!');
+        });
+    });
 }
