@@ -107,6 +107,7 @@ function copyCompiledResources(logger, data, next) {
             });
             //we should REALLLY skip android.
             //FIXME this can still be improved upon
+            //when we read dir, we need to recursively copy
             isAlloy ? resourcesPath = parentDir + '/Resources/iphone/' : resourcesPath = parentDir + '/Resources/';
 
             fs.readdir(resourcesPath, (err, files) => {
