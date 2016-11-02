@@ -3,7 +3,7 @@ var xcode = require('xcode'),
     path = require('path'),
     spawn = require('child_process').spawn,
     utils = require('../../../../utils'),
-    //tiapp = require();
+    tiapp = require('tiapp.xml').load('./tiapp.xml');
 
 /* Needed paths for the plugin */
 var paths = {}
@@ -14,11 +14,11 @@ exports.init = function(logger, config, cli) {
     process.on('SIGINT', function() {
         process.exit(2)
     })
-    process.on('exit', function() { })
+    process.on('exit', function() {})
 
     cli.on('build.pre.construct', executeSeq(logger, [
-            prepare
-        ]))
+        prepare
+    ]))
     cli.on('build.post.compile', executeSeq(logger, [
         copyCompiledResources
     ]))
@@ -73,26 +73,49 @@ function cleanProject(logger, data, next) {
 function copyCompiledResources(logger, data, next) {
     logger.info("Copying compiled resources")
     utils.clean('', next)
-    var exec = require('child_process').exec;
-    var path = require('path')
+    var exec = require('child_process').exec,
+        path = require('path'),
+        parentDir = path.resolve(process.cwd(), '.');
 
-    var parentDir = path.resolve(process.cwd(), '.');
-    exec('NowWeFixAppJS', { cwd: parentDir }, function(error, stdout, stderr) {
-        console.log("what is up" + parentDir);
+    exec('NowWeFixAppJS', {
+        cwd: parentDir
+    }, function(error, stdout, stderr) {
+        //console.log("our parent directory is: " + parentDir);
 
-        // find tiapp.xml
-        // read name of project
-        // read to see if alloy is used
-        // read for hyperloop
-        // copy relevant resource folders and assets to xcodeproj/pbxproj
-        // profit
+        // read for hyperloop..we are going to skip over this for the first release.
+        /*
+        var modules = tiapp.getModules();
+        // iterate through a list of modules from the tiapp.xml
+        modules.forEach(function(mod) {
+        // read access to properties on module object
+        console.log('id=%s,version=%s,platform=%s',
+        mod.id, mod.version || '<no version>', mod.platform || '<no platform>');
+        });
+        */
 
-        var projectPath = parentDir + '/build/iphone/whyme.xcodeproj/project.pbxproj',
-            myProj = xcode.project(projectPath);
+        var projectPath = parentDir + '/build/iphone/' + tiapp.name + '.xcodeproj/project.pbxproj',
+            myProj = xcode.project(projectPath),
+            isAlloy = false,
+            resourcesPath = parentDir + '/Resources/';
 
         myProj.parse(function(err) {
-            myProj.addResourceFile(parentDir + '/Resources/app.js');
-            fs.writeFileSync(projectPath, myProj.writeSync());
+            var plugins = tiapp.getPlugins();
+            plugins.forEach(function(plugin) {
+                if (plugin.id === 'ti.alloy') {
+                    var isAlloy = true;
+                }
+            });
+            //we should REALLLY skip android.
+            //FIXME this can still be improved upon
+            isAlloy ? resourcesPath = parentDir + '/Resources/iphone/' : resourcesPath = parentDir + '/Resources/';
+
+            fs.readdir(resourcesPath, (err, files) => {
+                files.forEach(file => {
+                    console.log(file + 'Added to xcodeproj');
+                    myProj.addResourceFile(resourcesPath + file);
+                    fs.writeFileSync(projectPath, myProj.writeSync());
+                });
+            });
             console.log('Congrats, you now have a corrected xcodeproj!');
         });
     });

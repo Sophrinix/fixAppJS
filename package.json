@@ -13,7 +13,8 @@
   "dependencies": {
     "ioslib": "0.15.4",
     "node-appc": "0.2.39",
-    "xcode": "0.8.9"
+    "xcode": "0.8.9",
+    "tiapp.xml": "^0.2.2"
   },
   "keywords": [
     "appcelerator",
