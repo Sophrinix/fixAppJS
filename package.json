@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "ioslib": "0.15.4",
+    "wrench": "1.5.9",
     "node-appc": "0.2.39",
     "xcode": "0.8.9",
     "tiapp.xml": "^0.2.2"

@@ -1,6 +1,7 @@
 var xcode = require('xcode'),
     fs = require('fs'),
     path = require('path'),
+    wrench = require("wrench"),
     spawn = require('child_process').spawn,
     utils = require('../../../../utils'),
     tiapp = require('tiapp.xml').load('./tiapp.xml');
@@ -9,7 +10,9 @@ var xcode = require('xcode'),
 var paths = {}
 exports.cliVersion = ">=3.x"
 exports.version = "1.0"
+
 exports.init = function(logger, config, cli) {
+
     /* Handle brutal stops */
     process.on('SIGINT', function() {
         process.exit(2)
@@ -56,8 +59,14 @@ function executeSeq(logger, tasks) {
     }
 }
 
+function failWithAngryMessage(data) {
+    console.log("[ERROR] You can't run --fixappjs for " + data.cli.argv["platform"] + " Projects!\n It's for iOS projects only!!! ");
+    process.exit(2)
+}
+
 function prepare(logger, data, next) {
-    logger.info("preparing to fix the app.js issue")
+
+    data.cli.argv["platform"] === ('android' || 'mobileweb' || 'windows') ? failWithAngryMessage(data) : console.log('Preparing to fix app.js issue for your iOS project');
     utils.clean('', next)
 }
 
@@ -70,6 +79,8 @@ function cleanProject(logger, data, next) {
     logger.info("Another function that I think I can give the axe to")
 }
 
+
+
 function copyCompiledResources(logger, data, next) {
     logger.info("Copying compiled resources")
     utils.clean('', next)
@@ -80,18 +91,19 @@ function copyCompiledResources(logger, data, next) {
     exec('NowWeFixAppJS', {
         cwd: parentDir
     }, function(error, stdout, stderr) {
-        //console.log("our parent directory is: " + parentDir);
 
         // read for hyperloop..we are going to skip over this for the first release.
-        /*
-        var modules = tiapp.getModules();
-        // iterate through a list of modules from the tiapp.xml
-        modules.forEach(function(mod) {
-        // read access to properties on module object
-        console.log('id=%s,version=%s,platform=%s',
-        mod.id, mod.version || '<no version>', mod.platform || '<no platform>');
-        });
-        */
+
+
+        function alloyResourcesPath(parentDir) {
+            return parentDir + '/Resources/iphone/';
+            console.log('[INFO] Alloy resources represent')
+        }
+
+        function classicResourcesPath(parentDir) {
+            return parentDir + '/Resources/';
+            console.log('[INFO] classic resources represent')
+        }
 
         var projectPath = parentDir + '/build/iphone/' + tiapp.name + '.xcodeproj/project.pbxproj',
             myProj = xcode.project(projectPath),
@@ -102,20 +114,29 @@ function copyCompiledResources(logger, data, next) {
             var plugins = tiapp.getPlugins();
             plugins.forEach(function(plugin) {
                 if (plugin.id === 'ti.alloy') {
-                    var isAlloy = true;
+                    console.log('[INFO] fixappjs has detected that this is an alloy project!')
+                    return isAlloy = true;
                 }
             });
-            //we should REALLLY skip android.
-            //FIXME this can still be improved upon
-            //when we read dir, we need to recursively copy
-            isAlloy ? resourcesPath = parentDir + '/Resources/iphone/' : resourcesPath = parentDir + '/Resources/';
+            var android = new RegExp('android', 'i'),
+                mobileweb = new RegExp('mobileweb', 'i'),
+                ios = new RegExp('ios', 'i'),
+                iphone = new RegExp('iphone', 'i');
 
-            fs.readdir(resourcesPath, (err, files) => {
-                files.forEach(file => {
-                    console.log(file + 'Added to xcodeproj');
-                    myProj.addResourceFile(resourcesPath + file);
-                    fs.writeFileSync(projectPath, myProj.writeSync());
-                });
+            isAlloy ? resourcesPath = alloyResourcesPath(parentDir) : classicResourcesPath(parentDir);
+
+            wrench.readdirRecursive(resourcesPath, function(error, files) {
+                if (files !== null) {
+                    files.forEach(file => {
+                        if (String(file).match(android) || String(file).match(mobileweb)) {
+                            logger.trace((file + ' ignore').grey);
+                        } else {
+                            logger.trace((file + ' Added to xcodeproj').grey);
+                            myProj.addResourceFile(resourcesPath + file);
+                            fs.writeFileSync(projectPath, myProj.writeSync());
+                        }
+                    });
+                }
             });
             console.log('Congrats, you now have a corrected xcodeproj!');
         });
