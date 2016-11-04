@@ -49,10 +49,10 @@ Here's three ideas, with many more in the works.
  [![Titanium and Instruments](docs/img/titanium-instruments.png)](https://codexcasts.com/episodes/titanium-and-xcode-instruments-6-3
  )
 
- [![TiCalabash](docs/img/titanium-instruments.png)](https://codexcasts.com/episodes/ticalabash-getting-started
+ [![TiCalabash](docs/img/ticalabash.png)](https://codexcasts.com/episodes/ticalabash-getting-started
  )
 
- [![Titanium React](docs/img/titanium-instruments.png)](https://codexcasts.com/episodes/getting-started-with-react-titanium
+ [![Titanium React](docs/img/react-titanium.png)](https://codexcasts.com/episodes/getting-started-with-react-titanium
  )
 
 To be fair, you don't strictly need this plugin to make this last one work.
