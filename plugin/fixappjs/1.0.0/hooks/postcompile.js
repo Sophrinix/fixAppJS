@@ -33,7 +33,6 @@ function executeSeq(logger, tasks) {
         fixappjs = null;
 
     return function task(data, terminate) {
-        /* No task are done if es6 isn't needed */
         if (fixappjs === null && data.cli) {
             var propFixAppJS = data.cli.tiapp.properties.fixappjs && data.cli.tiapp.properties.fixappjs.value
             var optiFixAppJS = data.cli.argv.$_.indexOf('--fixappjs') !== -1
@@ -78,8 +77,6 @@ function symlinkResources(logger, data, next) {
 function cleanProject(logger, data, next) {
     logger.info("Another function that I think I can give the axe to")
 }
-
-
 
 function copyCompiledResources(logger, data, next) {
     logger.info("Copying compiled resources")
