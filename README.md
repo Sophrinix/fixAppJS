@@ -3,7 +3,7 @@
 FixAppJS on Titanium iOS projects corrects the "Could not find the file app.js" issue.
 
 ## Why is this needed?
-Appcelerator has a history of regressing to "Could not find the file app.js" when you try to use their generated Xcode project and I have a history of fixing and/or reporting it.
+Appcelerator has a history of regressing to "Could not find the file app.js" when you try to open Xcode and use their generated Xcode project and I have a history of fixing and/or reporting it.
 
 In 2013 I had this to say:
 
@@ -68,6 +68,43 @@ Pull Requests are welcome.
 ## Final Notes
 
 This project is not affiliated with Appcelerator in any way. As stated earlier, they no longer support using their generated Xcode project. If you run into issues, please file a bug with this project.
+
+## Misc Troubleshooting Notes
+
+Please note that you should not ever install a npm package using sudo.
+If you are here is how you can resolve that issue.
+First, get your npm prefix path.
+
+    $ npm config get prefix
+You will likely see:
+ ```
+ /usr/local
+ ```
+
+Next you will want to run:
+```
+    $ sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
+```
+
+If you ran
+```
+$ npm install -g fixappjs
+```
+and saw an error that looked like this:
+
+```
+Unable to write config file /User/your_username/.titanium/config.json
+Please ensure the Titanium CLI has access to modify this file
+```
+Then you need to also run:
+```
+$ sudo chown -R $(whoami) .titanium
+```
+
+##### DerivedData
+
+DerivedData deserves is own special place in ~~~hell~~~ this README. It will likely be the biggest reason over time that this cli hook could fail. I will update this section as I discover ways DerivedData throws a wrench in this project.
+
 
 ## License
 
