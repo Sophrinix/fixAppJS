@@ -9,7 +9,7 @@ var xcode = require('xcode'),
 /* Needed paths for the plugin */
 var paths = {}
 exports.cliVersion = ">=3.x"
-exports.version = "1.0"
+exports.version = "1.0.3"
 
 exports.init = function(logger, config, cli) {
 

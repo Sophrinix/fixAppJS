@@ -3,7 +3,7 @@
 var CONF  = require('./package.json')
 var spawn = require('child_process').spawn
 var path  = require('path')
-var version = CONF.version.split('.').slice(0, 2).join('.')
+var version = CONF.version.split('.').slice(0, 3).join('.')
 var plugin = path.join(__dirname, 'plugin', CONF.name, version, 'hooks')
 
 function info (i) { process.stdout.write('\033[1;32m' + i + '\033[0m\n') }

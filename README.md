@@ -80,6 +80,7 @@ You will likely see:
  ```
  /usr/local
  ```
+If you don't see anything, then consider reinstalling npm.
 
 Next you will want to run:
 ```
