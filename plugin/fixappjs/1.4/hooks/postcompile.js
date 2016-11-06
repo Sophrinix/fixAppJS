@@ -1,7 +1,6 @@
 var xcode = require('xcode'),
-    fs = require('fs'),
+    fs = require('fs-extra'),
     path = require('path'),
-    wrench = require("wrench"),
     spawn = require('child_process').spawn,
     utils = require('../../../../utils'),
     tiapp = require('tiapp.xml').load('./tiapp.xml');
@@ -121,7 +120,7 @@ function copyCompiledResources(logger, data, next) {
                 iphone = new RegExp('iphone', 'i');
 
             isAlloy ? resourcesPath = alloyResourcesPath(parentDir) : classicResourcesPath(parentDir);
-
+            /**
             wrench.readdirRecursive(resourcesPath, function(error, files) {
                 if (files !== null) {
                     files.forEach(file => {
@@ -134,7 +133,17 @@ function copyCompiledResources(logger, data, next) {
                         }
                     });
                 }
-            });
+            });**/
+            var tiSourceAddToResources =fs.readdirSync(resourcesPath);
+            for (var i in tiSourceAddToResources) {
+              if (String(tiSourceAddToResources[i]).match(android) || String(tiSourceAddToResources[i]).match(mobileweb)) {
+                  logger.trace((tiSourceAddToResources[i] + ' ignored').grey);
+              }else {
+                  logger.info((tiSourceAddToResources[i] + ' added to Xcode Project').grey);
+                  myProj.addResourceFile( resourcesPath + tiSourceAddToResources[i]);
+                }
+              fs.writeFileSync(projectPath, myProj.writeSync());
+            }
             console.log('Congrats, you now have a corrected xcodeproj!');
         });
     });

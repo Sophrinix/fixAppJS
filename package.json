@@ -1,6 +1,6 @@
 {
   "name": "fixappjs",
-  "version": "1.0.3",
+  "version": "1.4.1",
   "description": "A Titanium plugin to fix app.js in xcodeproj",
   "scripts": {
       "postinstall": "node run install",
@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "ioslib": "0.15.4",
-    "wrench": "1.5.9",
     "node-appc": "0.2.39",
     "xcode": "0.8.9",
-    "tiapp.xml": "^0.2.2"
+    "tiapp.xml": "^0.2.2",
+    "fs-extra":"1.0.0"
   },
   "keywords": [
     "appcelerator",
