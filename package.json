@@ -1,6 +1,6 @@
 {
   "name": "fixappjs",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "A Titanium plugin to fix app.js in xcodeproj",
   "scripts": {
       "postinstall": "node run install",

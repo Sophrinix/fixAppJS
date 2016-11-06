@@ -104,6 +104,7 @@ function copyCompiledResources(logger, data, next) {
         var projectPath = parentDir + '/build/iphone/' + tiapp.name + '.xcodeproj/project.pbxproj',
             myProj = xcode.project(projectPath),
             isAlloy = false,
+            projectFailure = false,
             resourcesPath = parentDir + '/Resources/';
 
         myProj.parse(function(err) {
@@ -120,20 +121,20 @@ function copyCompiledResources(logger, data, next) {
                 iphone = new RegExp('iphone', 'i');
 
             isAlloy ? resourcesPath = alloyResourcesPath(parentDir) : classicResourcesPath(parentDir);
-            /**
-            wrench.readdirRecursive(resourcesPath, function(error, files) {
-                if (files !== null) {
-                    files.forEach(file => {
-                        if (String(file).match(android) || String(file).match(mobileweb)) {
-                            logger.trace((file + ' ignore').grey);
-                        } else {
-                            logger.trace((file + ' Added to xcodeproj').grey);
-                            myProj.addResourceFile(resourcesPath + file);
-                            fs.writeFileSync(projectPath, myProj.writeSync());
-                        }
-                    });
+
+            // we are copying {parentDir (where tiapp.xml is)}/Resources/alloy folder into
+            // {parentDir}/Resources/iphone/alloy if this is an alloy project.
+            if(isAlloy){
+              fs.copy(parentDir+'/Resources/alloy/', resourcesPath+'/alloy/', function (err) {
+                if (err) {
+                  console.error(err);
+                  projectFailure = true;
                 }
-            });**/
+                });
+            }
+
+
+
             var tiSourceAddToResources =fs.readdirSync(resourcesPath);
             for (var i in tiSourceAddToResources) {
               if (String(tiSourceAddToResources[i]).match(android) || String(tiSourceAddToResources[i]).match(mobileweb)) {
@@ -144,7 +145,29 @@ function copyCompiledResources(logger, data, next) {
                 }
               fs.writeFileSync(projectPath, myProj.writeSync());
             }
-            console.log('Congrats, you now have a corrected xcodeproj!');
+
+
+              /*
+                //We need to specifically grab any commonJS the project has
+                // this is a first past aprox of what I will need to write
+                // this code is currently broken. do not uncomment.
+                var commonJSModules =fs.readdirSync(commonJSModulePath);
+                /*
+                *  BTW, a for loop is WAY faster than a forEach
+                * https://coderwall.com/p/kvzbpa/don-t-use-array-foreach-use-for-instead
+                */
+                /*
+                for (var i in commonJSModules) {
+
+                      logger.info((commonJSModules[i] + '  added to Xcode Project').grey);
+                      myProj.addResourceFile( commonJSModulesPath + commonJSModules[i]);
+                    }
+                  fs.writeFileSync(projectPath, myProj.writeSync());
+                }
+                */
+
+                //we should make this a conditionally true line. 
+           logger.info('Congrats, you now have a corrected xcodeproj!');
         });
     });
 }
