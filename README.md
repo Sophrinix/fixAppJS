@@ -104,7 +104,7 @@ $ sudo chown -R $(whoami) .titanium
 
 ##### DerivedData
 
-DerivedData deserves is own special place in ~~~hell~~~ this README. It will likely be the biggest reason over time that this cli hook could fail. I will update this section as I discover ways DerivedData throws a wrench in this project.
+DerivedData deserves is own special place in ~~hell~~ this README. It will likely be the biggest (technical) reason over time that this cli hook could fail. At this time there are no issues being caused by DerivedData that I am aware of. 
 
 
 ## License
