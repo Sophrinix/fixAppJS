@@ -3,7 +3,9 @@ var xcode = require('xcode'),
     path = require('path'),
     spawn = require('child_process').spawn,
     utils = require('../../../../utils'),
-    tiapp = require('tiapp.xml').load('./tiapp.xml');
+    tiapp = require('tiapp.xml').load('./tiapp.xml'),
+    appc = require('node-appc'),
+    i18n = appc.i18n(__dirname);
 
 /* Needed paths for the plugin */
 var paths = {}
@@ -133,8 +135,49 @@ function copyCompiledResources(logger, data, next) {
                 });
             }
 
+            // straight up stolen from _build.js Thanks Chris.
+            // good artists copy, great artist steal, and pretentious artists
+            // quote steve jobs quoting other people.
 
+            function writeI18NFiles(parentDir,resourcesPath) {
+            	var data = utils.load(parentDir, this.logger),
+            		header = '/**\n' +
+            		         ' * Appcelerator Titanium\n' +
+            		         ' * this is a generated file - DO NOT EDIT\n' +
+            		         ' */\n\n';
+            	function add(obj, dest, map) {
+            		if (obj) {
+            			var rel = dest.replace(parentDir + '/', ''),
+            				contents = header + Object.keys(obj).map(function (name) {
+            					return '"' + (map && map[name] || name).replace(/\\"/g, '"').replace(/"/g, '\\"') +
+            						'" = "' + (''+obj[name]).replace(/%s/g, '%@').replace(/\\"/g, '"').replace(/"/g, '\\"') + '";';
+            				}).join('\n');
 
+            			if (!fs.existsSync(dest) || contents !== fs.readFileSync(dest).toString()) {
+            				if (!this.forceRebuild && /device|dist\-appstore|dist\-adhoc/.test(this.target)) {
+            					this.forceRebuild = true;
+            				}
+            				fs.writeFileSync(dest, contents);
+            			} else {
+            				//this.logger.trace(__('No change, skipping %s', dest.cyan));
+            			}
+            		}
+            	}
+
+            	var keys = Object.keys(data);
+            	if (keys.length) {
+            		keys.forEach(function (lang) {
+                  logger.info("our lang is: " + JSON.stringify(lang));
+            			var dir = path.join(resourcesPath, lang + '.lproj');
+                  fs.existsSync(dir) || fs.mkdirsSync(dir);
+            			add.call(this, data[lang].app, path.join(dir, 'InfoPlist.strings'), { appname: 'CFBundleDisplayName' });
+            			add.call(this, data[lang].strings, path.join(dir, 'Localizable.strings'));
+            		}, this);
+            	} else {
+            		logger.debug('No i18n files to process');
+            	}
+            };
+            writeI18NFiles(parentDir, resourcesPath);
             var tiSourceAddToResources =fs.readdirSync(resourcesPath);
             for (var i in tiSourceAddToResources) {
               if (String(tiSourceAddToResources[i]).match(android) || String(tiSourceAddToResources[i]).match(mobileweb)) {
@@ -145,28 +188,7 @@ function copyCompiledResources(logger, data, next) {
                 }
               fs.writeFileSync(projectPath, myProj.writeSync());
             }
-
-
-              /*
-                //We need to specifically grab any commonJS the project has
-                // this is a first past aprox of what I will need to write
-                // this code is currently broken. do not uncomment.
-                var commonJSModules =fs.readdirSync(commonJSModulePath);
-                /*
-                *  BTW, a for loop is WAY faster than a forEach
-                * https://coderwall.com/p/kvzbpa/don-t-use-array-foreach-use-for-instead
-                */
-                /*
-                for (var i in commonJSModules) {
-
-                      logger.info((commonJSModules[i] + '  added to Xcode Project').grey);
-                      myProj.addResourceFile( commonJSModulesPath + commonJSModules[i]);
-                    }
-                  fs.writeFileSync(projectPath, myProj.writeSync());
-                }
-                */
-
-                //we should make this a conditionally true line. 
+                //we should make this a conditionally true line.
            logger.info('Congrats, you now have a corrected xcodeproj!');
         });
     });
