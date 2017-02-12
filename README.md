@@ -1,5 +1,7 @@
 # FixAppJS
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/87a358f923814746b2f814de20bc753d)](https://www.codacy.com/app/Sophrinix/fixAppJS?utm_source=github.com&utm_medium=referral&utm_content=Sophrinix/fixAppJS&utm_campaign=badger)
+
 FixAppJS on Titanium iOS projects corrects the "Could not find the file app.js" issue.
 
 ## Why is this needed?
